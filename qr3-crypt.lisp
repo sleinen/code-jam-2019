@@ -45,22 +45,16 @@
 	    (setq start (/ ciph start)))
 	  (reverse s)))))
 
-(defun prime-to-char (cp-orig c0 cn)
-  (let ((cp (make-array (list (+ (length cp-orig) 2)))))
-    (dotimes (k (length cp-orig))
-      (setf (aref cp (+ k 1)) (elt cp-orig k)))
-    (setf (aref cp 0) (/ c0 (aref cp 1)))
-    (setf (aref cp (+ (length cp-orig) 1)) (/ cn (aref cp (length cp-orig))))
-
-    (let ((sorted-primes
-	   (sort (remove-duplicates (copy-seq cp)) #'<))
-	  (prime-to-char (make-hash-table :test #'eql))
-	  (ch #\A))
-      (dotimes (k (length sorted-primes) prime-to-char)
-	(let ((prime (aref sorted-primes k)))
-	  (setf (gethash prime prime-to-char)
-		ch))
-	(setq ch (code-char (+ (char-code ch) 1)))))))
+(defun prime-to-char (cp)
+  (let ((sorted-primes
+	 (sort (remove-duplicates (copy-seq cp)) #'<))
+	(prime-to-char (make-hash-table :test #'eql))
+	(ch #\A))
+    (dotimes (k (length sorted-primes) prime-to-char)
+      (let ((prime (elt sorted-primes k)))
+	(setf (gethash prime prime-to-char)
+	      ch))
+      (setq ch (code-char (+ (char-code ch) 1))))))
 
 (defun solve-case (caseno in)
   (let ((N (read in))
@@ -84,7 +78,7 @@
 	  (c-rl (apply #'vector (mapcar #'cdr ciph-rle))))
       (let ((cp-rle (clearprimes (apply #'vector (mapcar #'car ciph-rle)))))
 	(let ((cp (expand-rle ciph c-rl cp-rle)))
-	  (let ((prime-to-char (prime-to-char cp (aref ciph 0) (aref ciph (- (length ciph) 1)))))
+	  (let ((prime-to-char (prime-to-char cp)))
 	    (format t "Case #~D: "
 		    (+ caseno 1))
 	    (dotimes (k (length cp))
