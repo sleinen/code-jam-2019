@@ -54,12 +54,9 @@
 	      ch))
       (setq ch (code-char (+ (char-code ch) 1))))))
 
-(defun solve-case (caseno in)
-  (let ((N (read in))
-	(L (read in))
-	(last nil)
-	(ciph-rle '()))
-
+(defun read-ciphertext-rle (in N L)
+  (let ((ciph-rle '())
+	(last nil))
     ;; We need to be careful about repeated symbols in the ciphertext.
     ;; Therefore, we read the symbols into a run-length encoded
     ;; sequence first.
@@ -70,15 +67,21 @@
 	    (incf (cdr (first ciph-rle)))
 	    (push (cons x 1) ciph-rle))
 	(setq last x)))
-    (setq ciph-rle (nreverse ciph-rle))
+    (setq ciph-rle (nreverse ciph-rle))))
 
-    (let ((ciph (apply #'vector (mapcar #'car ciph-rle)))
-	  (c-rl (apply #'vector (mapcar #'cdr ciph-rle))))
-      (let ((cp-rle (clearprimes (apply #'vector (mapcar #'car ciph-rle)))))
-	(let ((cp (expand-rle ciph c-rl cp-rle)))
-	  (let ((prime-to-char (prime-to-char cp)))
-	    (format t "Case #~D: "
-		    (+ caseno 1))
-	    (dotimes (k (length cp))
-	      (format t "~C" (gethash (elt cp k) prime-to-char #\?)))
-	    (format t "~%")))))))
+(defun solve-case (caseno in)
+  (let ((N (read in))
+	(L (read in)))
+    (let ((ciph-rle (read-ciphertext-rle in N L)))
+      (let ((ciph (apply #'vector (mapcar #'car ciph-rle)))
+	    (c-rl (apply #'vector (mapcar #'cdr ciph-rle))))
+	(let ((cp-rle (clearprimes (apply #'vector (mapcar #'car ciph-rle)))))
+	  (let ((cp (expand-rle ciph c-rl cp-rle)))
+	    (let ((prime-to-char (prime-to-char cp)))
+	      (format t "Case #~D: "
+		      (+ caseno 1))
+	      (dotimes (k (length cp))
+		(format t "~C" (gethash (elt cp k) prime-to-char)))
+	      (format t "~%"))))))))
+
+(solve)
