@@ -16,15 +16,13 @@
   (let ((result
 	 (expand-chunk (aref ciph 0) (aref c-rl 0) :next (aref cp 0))))
     (dotimes (i (length cp))
-      (setq result
-	    (append result
-		    (expand-chunk (aref ciph (+ i 1)) (aref c-rl (+ i 1))
-				  :start (aref cp i)))))
-    (setq result
-	  (append result
-		  (expand-chunk (aref ciph (- (length ciph) 1))
-				1
-				:previous (car (last result)))))
+      (let ((l (aref c-rl (+ i 1))))
+	(when (= i (- (length cp) 1))
+	  (setq l (+ l 1)))
+	(setq result
+	      (append result
+		      (expand-chunk (aref ciph (+ i 1)) l
+				    :start (aref cp i))))))
     result))
 
 (defun expand-chunk (ciph rl &key next start previous)
