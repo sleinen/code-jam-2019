@@ -51,10 +51,6 @@
 		  response-bits)))))
 
     (labels ((matchp (a ai b bi f)
-	       (let ((result (matchp-1 a ai b bi f)))
-		 result))
-
-	     (matchp-1 (a ai b bi f)
 	       (dotimes (r f t)
 		 (unless (= (aref (aref a r) ai)
 			    (aref (aref b r) bi))
