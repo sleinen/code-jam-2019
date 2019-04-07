@@ -26,7 +26,7 @@ main ()
       start = -1;
       strncpy (A, N, MAXDIGITS);
       memset (B, '0', MAXDIGITS);
-      B[l] = 0;
+      A[l] = B[l] = 0;
       for (i = 0; i < l; ++i)
 	{
 	  if (N[i] == '4')
