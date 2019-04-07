@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define MAXSIZE 1000
+#define MAXSIZE 50000
 
 int
 main ()
