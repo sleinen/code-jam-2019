@@ -22,7 +22,7 @@
       (solve-with-streams *standard-input* *standard-output*)))
 
 (defstruct (well)
-  (w)
+  (queries-left)
   (ht (make-hash-table :test 'eql))
   (i)
   (o))
@@ -30,15 +30,16 @@
 (defun ask-oracle (well n)
   (or (gethash n (well-ht well))
       (progn
+	(when (< (well-queries-left well) 1)
+	  (error "The well is empty."))
+	(decf (well-queries-left well))
 	(format (well-o well) "~D~%" n)
 	(finish-output (well-o well))
 	(let ((result (read (well-i well))))
-	  (warn "At the end of day ~D, Odin had ~D (~63,'0B) rings."
-		n result result)
 	  (setf (gethash n (well-ht well)) result)))))
 
 (defun solve-case (w i o)
-  (let ((well (make-well :w w :i i :o o)))
+  (let ((well (make-well :queries-left w :i i :o o)))
     (solve-case-1 i o well)))
 
 (defun solve-case-1 (i o well)
