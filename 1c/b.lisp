@@ -36,18 +36,13 @@
 ;;; the Nth letter of each permutation that starts with the currently
 ;;; learned prefix that is common with the missing permutation.
 ;;;
-;;; Handling the indices into the long vector is a bit tricky.  At
-;;; each level, we keep a vector of indices of these letters of
-;;; interest.  Initially, this is the vector [0,5,10,11,...,595], with
+;;; At each level, we keep a list of indices of the letters of
+;;; interest.  Initially, this is the list (0,5,10,11,...,595), with
 ;;; 119 elements.  (We use zero-based indexing internally, adding 1
-;;; when doing the queries.)  For the next level, we look at only the
-;;; "interesting" permutations, and for each previous index i, keep
-;;; i+1 if C_i was the "right" letter.  That might leave us with
-;;; something like [1,11,26,...] if the first, third, and sixth
-;;; permutation started with the "right" letter.
-;;;
-;;; The function MAKE-INDEX-MAP computes the next index map for each
-;;; step.
+;;; when doing the queries.)  As we query letters, we collect the
+;;; index of the _next_ letter under each letter.  At the next level,
+;;; we continue with the stored next-indices for the letter of
+;;; interest.
 ;;;
 ;;; There is one special case that took me a while to understand: At
 ;;; the last level, we only have a single permutation remaining to
@@ -101,51 +96,42 @@
 
 (defun solve-case (f i o syms n)
   (let ((fac-1 (1- (fac n))))
-    (let ((index-map (make-array (list fac-1))))
+    (let ((indices '()))
       (dotimes (a fac-1)
-	(setf (aref index-map a) (* a n)))
-      (solve-case-1 f i o syms index-map fac-1 n '()))))
+	(push (* a n) indices))
+      (solve-case-1 f i o syms indices fac-1 n '()))))
 
-(defun make-index-map (old-im s c count)
-  (let ((new (make-array (list count)))
-	(new-i 0))
-    (dotimes (old-i (length s) new)
-      (when (eql (aref s old-i) c)
-	(setf (aref new new-i) (+ (aref old-im old-i) 1))
-	(incf new-i)))))
-
-(defun solve-case-1 (f i o syms index-map count n result)
-  (let ((next-count (1- (/ (1+ count) n))))
-    (let ((s (make-array (list count))))
-      (dotimes (a count)
-	(let ((index (aref index-map a)))
-	  (format o "~D~%" (1+ index))
-	  (finish-output o)
-	  (let ((response (read-line i)))
-	    ; (warn "~D -> ~D -> ~A" a index response)
-	    (unless (= (length response) 1)
-	      (error "Response: ~A" response))
-	    (setf (aref s a) (aref response 0)))))
-      (dolist (c syms)
-	(when (and (= (count c s) next-count)
-		   (not (member c result)))
-	  (if (> next-count 0)
-	      (solve-case-1
-	       f i o syms
-	       (make-index-map index-map s c next-count)
-	       next-count
-	       (1- n)
-	       (cons c result))
-	      (progn
-		(push c result)
-		(dolist (c syms)
-		  (unless (member c result)
-		    (push c result)))
-		(setq result (nreverse result))
-		(format o "~{~C~}~%" result)
-		(finish-output o)
-		(let ((response (read-line i)))
-		  (assert (string= response "Y")))
-		(return-from solve-case-1 result))))))))
+(defun solve-case-1 (f i o syms indices count n result)
+  (let ((next-count (1- (/ (1+ count) n)))
+	(char->indices (make-hash-table)))
+    (dolist (index indices)
+      (format o "~D~%" (1+ index))
+      (finish-output o)
+      (let ((response (read-line i)))
+	;; (warn "~D -> ~D -> ~A" a index response)
+	(unless (= (length response) 1)
+	  (error "Response: ~A" response))
+	(push (1+ index) (gethash (aref response 0) char->indices '()))))
+    (dolist (c syms)
+      (when (and (= (length (gethash c char->indices)) next-count)
+		 (not (member c result)))
+	(if (> next-count 0)
+	    (solve-case-1
+	     f i o syms
+	     (gethash c char->indices)
+	     next-count
+	     (1- n)
+	     (cons c result))
+	    (progn
+	      (push c result)
+	      (dolist (c syms)
+		(unless (member c result)
+		  (push c result)))
+	      (setq result (nreverse result))
+	      (format o "~{~C~}~%" result)
+	      (finish-output o)
+	      (let ((response (read-line i)))
+		(assert (string= response "Y")))
+	      (return-from solve-case-1 result)))))))
 
 (solve)
