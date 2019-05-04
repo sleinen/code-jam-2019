@@ -51,7 +51,6 @@
       (dolist (c '(#\A #\B #\C #\D #\E))
 	(when (and (= (count c s) next-count)
 		   (not (member c result)))
-	  (warn "Found letter ~C" c)
 	  (if (rest (rest counts))
 	      (solve-case-1
 	       f i o
@@ -64,7 +63,6 @@
 		  (unless (member c result)
 		    (push c result)))
 		(setq result (nreverse result))
-		(warn "found result: ~{~C~}" result)
 		(format o "~{~C~}~%" result)
 		(finish-output o)
 		(let ((response (read-line i)))
