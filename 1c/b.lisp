@@ -73,22 +73,22 @@
 
 (defun solve-with-streams (i o)
   (let* ((ncase (read i))
-	 (f (read i)))
+         (f (read i)))
     (catch 'solve-exit
       (dotimes (caseno ncase)
-	(let ((syms '(#\A #\B #\C #\D #\E)))
-	  (solve-case f i o syms (length syms)))))))
+        (let ((syms '(#\A #\B #\C #\D #\E)))
+          (solve-case f i o syms (length syms)))))))
 
 (defun solve (&optional setno)
   (if setno
       (let ((p (sb-ext:run-program "/usr/local/bin/python3" (list "testing_tool.py" (format nil "~D" setno))
-				   :input :stream :output :stream :wait nil)))
-	(assert p)
-	(unwind-protect
-	     (solve-with-streams
-	      (sb-ext:process-output p)
-	      (sb-ext:process-input p))
-	  (sb-ext:process-close p)))
+                                   :input :stream :output :stream :wait nil)))
+        (assert p)
+        (unwind-protect
+             (solve-with-streams
+              (sb-ext:process-output p)
+              (sb-ext:process-input p))
+          (sb-ext:process-close p)))
       (solve-with-streams *standard-input* *standard-output*)))
 
 (defun fac (n) (fac1 n 1))
@@ -98,40 +98,40 @@
   (let ((fac-1 (1- (fac n))))
     (let ((indices '()))
       (dotimes (a fac-1)
-	(push (* a n) indices))
+        (push (* a n) indices))
       (solve-case-1 f i o syms indices fac-1 n '()))))
 
 (defun solve-case-1 (f i o syms indices count n result)
   (let ((next-count (1- (/ (1+ count) n)))
-	(char->indices (make-hash-table)))
+        (char->indices (make-hash-table)))
     (dolist (index indices)
       (format o "~D~%" (1+ index))
       (finish-output o)
       (let ((response (read-line i)))
-	;; (warn "~D -> ~D -> ~A" a index response)
-	(unless (= (length response) 1)
-	  (error "Response: ~A" response))
-	(push (1+ index) (gethash (aref response 0) char->indices '()))))
+        ;; (warn "~D -> ~D -> ~A" a index response)
+        (unless (= (length response) 1)
+          (error "Response: ~A" response))
+        (push (1+ index) (gethash (aref response 0) char->indices '()))))
     (dolist (c syms)
       (when (and (= (length (gethash c char->indices)) next-count)
-		 (not (member c result)))
-	(if (> next-count 0)
-	    (solve-case-1
-	     f i o syms
-	     (gethash c char->indices)
-	     next-count
-	     (1- n)
-	     (cons c result))
-	    (progn
-	      (push c result)
-	      (dolist (c syms)
-		(unless (member c result)
-		  (push c result)))
-	      (setq result (nreverse result))
-	      (format o "~{~C~}~%" result)
-	      (finish-output o)
-	      (let ((response (read-line i)))
-		(assert (string= response "Y")))
-	      (return-from solve-case-1 result)))))))
+                 (not (member c result)))
+        (if (> next-count 0)
+            (solve-case-1
+             f i o syms
+             (gethash c char->indices)
+             next-count
+             (1- n)
+             (cons c result))
+            (progn
+              (push c result)
+              (dolist (c syms)
+                (unless (member c result)
+                  (push c result)))
+              (setq result (nreverse result))
+              (format o "~{~C~}~%" result)
+              (finish-output o)
+              (let ((response (read-line i)))
+                (assert (string= response "Y")))
+              (return-from solve-case-1 result)))))))
 
 (solve)
