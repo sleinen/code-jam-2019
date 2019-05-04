@@ -45,6 +45,28 @@
 ;;; i+1 if C_i was the "right" letter.  That might leave us with
 ;;; something like [1,11,26,...] if the first, third, and sixth
 ;;; permutation started with the "right" letter.
+;;;
+;;; The function MAKE-INDEX-MAP computes the next index map for each
+;;; step.
+;;;
+;;; There is one special case that took me a while to understand: At
+;;; the last level, we only have a single permutation remaining to
+;;; query.  We ask for its fourth letter.  Above, we stated the rule
+;;; to find out the next letter of the missing permutation in this
+;;; form:
+;;;
+;;; "every letter instead of one will occur N times.  The one that
+;;; occurs only N-1 times is the first letter of the missing
+;;; permutation."
+;;;
+;;; This doesn't really apply at this level, where N=1.  One letter
+;;; occurs N (1) times, but all other letters occur N-1 (0) times.  We
+;;; which one is it? Fortunately we know that it cannot be one of the
+;;; (3) letters that we already know! Of the remaining two, we have
+;;; just excluded one, which leaves only one possibility.
+;;;
+;;; Finally, now that we know the first four letters, we add the
+;;; remaining missing letter for the full missing permutation.
 
 (defpackage :b (:use :common-lisp))
 
