@@ -1,3 +1,51 @@
+;;; Google Code Jam 2019, round 1C
+;;; Problem "Power Arrangers"
+;;;
+;;; Author:       Simon Leinen  <simon.leinen@gmail.com>
+;;; Date created: 2019-05-04
+;;;
+;;; Solution approach:
+;;;
+;;; We tackle the "hard" variant of the problem, where we are only
+;;; allowed 150 queries.  The basic idea is that we spend the first
+;;; 119 queries to find out which of the first letters is missing.  We
+;;; do so by asking for the first letter in each of the 119
+;;; permutations.  In the 119 responses, every letter instead of one
+;;; will occur 24 times.  The one that occurs only 23 times is the
+;;; first letter of the missing permutation.
+;;;
+;;; (Note that at this point, a small optimization would be possible:
+;;; As soon as we have four letters that have occurred 24 times, we
+;;; don't need to query for any first letters anymore, because we know
+;;; that the remaining indices MUST necessarily resolve to the missing
+;;; letter.  This is a good example of an optimization that's probably
+;;; not worth the effort; the small performance gain is not worth
+;;; getting it wrong.  On the other hand, some programmers may find it
+;;; inelegant to make queries when the result can be determined.)
+;;;
+;;; This leaves us with 23 remaining possible permutations, of which
+;;; we know the first letter.  So we can make 23 queries for their
+;;; respective second letters.  All second letters except one will
+;;; occur 6 times.  The one will occur 5 times and is the second
+;;; letter of the missing permutation.
+;;;
+;;; And so on... after 119 + 23 + 5 + 1 (= 148) queries, we should
+;;; have excluded all permutations and know the one that's missing.
+;;;
+;;; At each "level" N (=1,2,3,4) of the algorithm, we want to query
+;;; the Nth letter of each permutation that starts with the currently
+;;; learned prefix that is common with the missing permutation.
+;;;
+;;; Handling the indices into the long vector is a bit tricky.  At
+;;; each level, we keep a vector of indices of these letters of
+;;; interest.  Initially, this is the vector [0,5,10,11,...,595], with
+;;; 119 elements.  (We use zero-based indexing internally, adding 1
+;;; when doing the queries.)  For the next level, we look at only the
+;;; "interesting" permutations, and for each previous index i, keep
+;;; i+1 if C_i was the "right" letter.  That might leave us with
+;;; something like [1,11,26,...] if the first, third, and sixth
+;;; permutation started with the "right" letter.
+
 (defpackage :b (:use :common-lisp))
 
 (in-package :b)
