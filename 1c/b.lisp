@@ -67,6 +67,10 @@
 ;;;
 ;;; Finally, now that we know the first four letters, we add the
 ;;; remaining missing letter for the full missing permutation.
+;;;
+;;; For no extra points, we generalized the algorithm to deal with
+;;; permutations of arbitrary lengths N.  The program simply assumes
+;;; that the permitted number of queries (f) is sufficient.
 
 (defpackage :b (:use :common-lisp))
 
@@ -77,7 +81,8 @@
 	 (f (read i)))
     (catch 'solve-exit
       (dotimes (caseno ncase)
-	(solve-case f i o)))))
+	(let ((syms '(#\A #\B #\C #\D #\E)))
+	  (solve-case f i o syms (length syms)))))))
 
 (defun solve (&optional setno)
   (if setno
@@ -91,11 +96,15 @@
 	  (sb-ext:process-close p)))
       (solve-with-streams *standard-input* *standard-output*)))
 
-(defun solve-case (f i o)
-  (let ((index-map (make-array (list 119))))
-    (dotimes (a 119)
-      (setf (aref index-map a) (* a 5)))
-    (solve-case-1 f i o index-map '(119 23 5 1 0) '())))
+(defun fac (n) (fac1 n 1))
+(defun fac1 (n r) (if (zerop n) r (fac1 (1- n) (* n r))))
+
+(defun solve-case (f i o syms n)
+  (let ((fac-1 (1- (fac n))))
+    (let ((index-map (make-array (list fac-1))))
+      (dotimes (a fac-1)
+	(setf (aref index-map a) (* a n)))
+      (solve-case-1 f i o syms index-map fac-1 n '()))))
 
 (defun make-index-map (old-im s c count)
   (let ((new (make-array (list count)))
@@ -105,9 +114,8 @@
 	(setf (aref new new-i) (+ (aref old-im old-i) 1))
 	(incf new-i)))))
 
-(defun solve-case-1 (f i o index-map counts result)
-  (let ((count (first counts))
-	(next-count (second counts)))
+(defun solve-case-1 (f i o syms index-map count n result)
+  (let ((next-count (1- (/ (1+ count) n))))
     (let ((s (make-array (list count))))
       (dotimes (a count)
 	(let ((index (aref index-map a)))
@@ -118,18 +126,19 @@
 	    (unless (= (length response) 1)
 	      (error "Response: ~A" response))
 	    (setf (aref s a) (aref response 0)))))
-      (dolist (c '(#\A #\B #\C #\D #\E))
+      (dolist (c syms)
 	(when (and (= (count c s) next-count)
 		   (not (member c result)))
-	  (if (rest (rest counts))
+	  (if (> next-count 0)
 	      (solve-case-1
-	       f i o
+	       f i o syms
 	       (make-index-map index-map s c next-count)
-	       (rest counts)
+	       next-count
+	       (1- n)
 	       (cons c result))
 	      (progn
 		(push c result)
-		(dolist (c '(#\A #\B #\C #\D #\E))
+		(dolist (c syms)
 		  (unless (member c result)
 		    (push c result)))
 		(setq result (nreverse result))
