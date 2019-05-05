@@ -36,6 +36,7 @@
        (let ((first-set (remove-duplicates (mapcar #'first progs))))
 	 (case (length first-set)
 	   ((3) nil)
+	   ((1) (reverse (cons (beater (first first-set)) pref)))
 	   ((2)
 	    (let ((feasible
 		   (first (intersection first-set (mapcar #'beater first-set)))))
@@ -43,10 +44,6 @@
 	       (1- n)
 	       (cons feasible pref)
 	       (mapcar #'rotate
-		       (remove-if #'(lambda (x) (beatsp feasible (first x)))
-				  progs)))))
-	   ((1)
-	    (let ((winner (beater (first first-set))))
-	      (reverse (cons winner pref))))))))
+		       (remove feasible progs :test-not #'eql :key #'first)))))))))
 
 (solve)
